@@ -12,6 +12,10 @@ async def main():
     print(f"Starting server on {args.bind}:{args.port}")
 
     server = await asyncio.start_server(lambda r, w: handle_client(r, w, args), host=args.bind, port=args.port)
+    addr = ", ".join(str(sock.getsockname()) for sock in server.sockets)
+    print(f"[HOST] Listening on {addr}")
+    async with server:
+        await server.serve_forever()
 
 if __name__ == "__main__":
     asyncio.run(main())
