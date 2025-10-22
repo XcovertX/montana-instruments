@@ -5,7 +5,7 @@ Provide a small, reliable system for distributed telemetry with anomaly detectio
 
 Keep mechanisms simple, testable and observable.
 
-## Subsystems & Dataflow
+## Subsystems
 ### Host
 - TCP server
 - Periodic broadcast
@@ -17,7 +17,7 @@ Keep mechanisms simple, testable and observable.
 - TX queue over TCP -> Host
 - Config listener 
 
-### Dataflow
+## Dataflow
 Sensors -> Node Sampler -> Anomaly/Diag -> Ring+WAL -> TCP -> Host -> Log, ACK -> Node compact WAL
 
 ## Key Decisions & Trade-offs
