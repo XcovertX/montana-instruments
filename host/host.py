@@ -1,9 +1,16 @@
 import asyncio
 import argparse
 
-async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, args) -> None:
-    return
+class ClientState:
+    def __init__(self):
+        self.high_ack = -1
+        self.node_id = None
 
+async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, args) -> None:
+    peer = writer.get_extra_info("peername")
+    state = ClientState()
+    last_cfg_push = 0.0
+    
 async def main():
     parser = argparse.ArgumentParser(description="MI Diagnostics Host")
     parser.add_argument("--port", type=int, default=9000)
