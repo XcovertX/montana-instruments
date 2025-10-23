@@ -85,6 +85,10 @@ async def main():
     parser = argparse.ArgumentParser(description="MI Diagnostics Host")
     parser.add_argument("--port", type=int, default=9000)
     parser.add_argument("--bind", default="0.0.0.0")
+    parser.add_argument("--ack-delay-ms", dest="ack_delay_ms", type=int, default=0)
+    parser.add_argument("--faults", action="store_true", help="Enable random connection drops")
+    parser.add_argument("--drop-prob", type=float, default=0.0, help="Prob. per message to drop connection")
+    parser.add_argument("--push-config-every-s", type=int, default=20, help="Seconds between config pushes (0=disabled)")
     args = parser.parse_args()
     print(f"Starting server on {args.bind}:{args.port}")
 
