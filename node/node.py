@@ -14,6 +14,9 @@ class Node:
         self.port = port
         self.workdir = workdir
 
+    def sample_loop(self):
+        pass
+
 async def main():
     parser = argparse.ArgumentParser(description="MI Diagnostics Node")
     parser.add_argument("--id", required=True)
