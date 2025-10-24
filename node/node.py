@@ -28,7 +28,7 @@ class Node:
         self.z_vib    = ZScore()
         self.degraded = False
 
-    async def make_sample(self) -> Dict[str, Any]:
+    def make_sample(self) -> Dict[str, Any]:
         # Simple random walk signals
         temp = 25.0 + random.gauss(0, 0.1) + random.choice([0.0, 0.0, 0.5]) * (random.random() < 0.01)
         hum = 40.0 + random.gauss(0, 0.15)
@@ -56,6 +56,12 @@ class Node:
     async def sample_loop(self):
         while True:
             start = time.perf_counter()
+            msg = self.make_sample()
+            self.buf.append(msg)
+            self.wal.append(msg)
+            self.seq += 1
+            # backpressure: if buffer is near full, mark degraded
+            self.degraded = len(self.buf) > int(self.config.buffer_max * 0.8)
             elapsed = time.perf_counter() - start
             await asyncio.sleep(max(0.0, PERIOD_10hz_s - elapsed))
 
