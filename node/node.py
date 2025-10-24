@@ -13,3 +13,16 @@ class Node:
         self.host = host
         self.port = port
         self.workdir = workdir
+
+async def main():
+    parser = argparse.ArgumentParser(description="MI Diagnostics Node")
+    parser.add_argument("--id", required=True)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=9000)
+    parser.add_argument("--workdir", default="./node_data")
+    args = parser.parse_args()
+
+    workdir = Path(args.workdir)
+    workdir.mkdir(parents=True, exist_ok=True)
+    
+    node = Node(args.id, args.host, args.port, workdir)
