@@ -9,6 +9,7 @@ from typing import Dict, Any
 from common.utils import PERIOD_10hz_s, get_monotonic_ms, get_wall_ms
 from node.anomaly import ZScore
 from node.config import NodeConfig
+from node.diagnostics import run_diagnostics
 from node.ring_buffer import RingBuffer
 from node.wal import WAL
 
@@ -37,6 +38,7 @@ class Node:
         self.z_vib.update(vib)
         z_any = max(abs(self.z_temp.z(temp)), abs(self.z_hum.z(hum)), abs(self.z_vib.z(vib)))
         anomaly = z_any > self.config.anomaly_z
+        d = run_diagnostics()
         msg = {
             "type": "telemetry",
             "node_id": self.node_id,
@@ -44,6 +46,9 @@ class Node:
             "ts_wall_ms": get_wall_ms(),
             "seq": self.seq,
             "metrics": {"temp_c": round(temp, 3), "hum_pct": round(hum, 3), "vib_g": round(vib, 4)},
+            "anomaly": anomaly,
+            "diagnostics": d,
+            "degraded": self.degraded,
         }
         return msg
 
