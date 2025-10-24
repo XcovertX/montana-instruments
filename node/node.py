@@ -27,6 +27,8 @@ class Node:
         msg = {
             "type": "telemetry",
             "node_id": self.node_id,
+            "ts_mono_ms": get_monotonic_ms(),
+            "ts_wall_ms": get_wall_ms(),
             "metrics": {"temp_c": round(temp, 3), "hum_pct": round(hum, 3), "vib_g": round(vib, 4)},
         }
         return msg
