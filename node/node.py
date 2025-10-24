@@ -6,13 +6,11 @@ import time
 import random
 from pathlib import Path
 from typing import Dict, Any
-from common.utils import get_monotonic_ms, get_wall_ms
+from common.utils import PERIOD_10hz_s, get_monotonic_ms, get_wall_ms
 from node.anomaly import ZScore
 from node.config import NodeConfig
 from node.ring_buffer import RingBuffer
 from node.wal import WAL
-
-PERIOD_10hz_s = 0.1
 
 class Node:
     def __init__(self, node_id: str, host: str, port: int, workdir: Path, config: NodeConfig):
@@ -34,6 +32,11 @@ class Node:
         temp = 25.0 + random.gauss(0, 0.1) + random.choice([0.0, 0.0, 0.5]) * (random.random() < 0.01)
         hum = 40.0 + random.gauss(0, 0.15)
         vib = 0.1 + abs(random.gauss(0, 0.02))
+        self.z_temp.update(temp)
+        self.z_hum.update(hum)
+        self.z_vib.update(vib)
+        z_any = max(abs(self.z_temp.z(temp)), abs(self.z_hum.z(hum)), abs(self.z_vib.z(vib)))
+        anomaly = z_any > self.config.anomaly_z
         msg = {
             "type": "telemetry",
             "node_id": self.node_id,
