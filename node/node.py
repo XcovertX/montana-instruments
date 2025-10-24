@@ -24,5 +24,8 @@ async def main():
 
     workdir = Path(args.workdir)
     workdir.mkdir(parents=True, exist_ok=True)
-    
+
     node = Node(args.id, args.host, args.port, workdir)
+
+if __name__ == "__main__":
+    asyncio.run(main())
