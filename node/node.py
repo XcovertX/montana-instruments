@@ -18,6 +18,7 @@ class Node:
         self.host = host
         self.port = port
         self.workdir = workdir
+        self.seq = 0
 
     async def make_sample(self) -> Dict[str, Any]:
         # Simple random walk signals
@@ -29,6 +30,7 @@ class Node:
             "node_id": self.node_id,
             "ts_mono_ms": get_monotonic_ms(),
             "ts_wall_ms": get_wall_ms(),
+            "seq": self.seq,
             "metrics": {"temp_c": round(temp, 3), "hum_pct": round(hum, 3), "vib_g": round(vib, 4)},
         }
         return msg
