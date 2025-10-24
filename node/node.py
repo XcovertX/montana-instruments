@@ -16,6 +16,19 @@ class Node:
         self.port = port
         self.workdir = workdir
 
+    async def make_sample(self) -> Dict[str, Any]:
+        # Simple random walk signals
+        temp = 25.0 + random.gauss(0, 0.1) + random.choice([0.0, 0.0, 0.5]) * (random.random() < 0.01)
+        hum = 40.0 + random.gauss(0, 0.15)
+        vib = 0.1 + abs(random.gauss(0, 0.02))
+        msg = {
+            "type": "telemetry",
+            "node_id": self.node_id,
+            "metrics": {"temp_c": round(temp, 3), "hum_pct": round(hum, 3), "vib_g": round(vib, 4)},
+        }
+        return msg
+
+
     async def sample_loop(self):
         while True:
             start = time.perf_counter()
