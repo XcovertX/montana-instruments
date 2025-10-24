@@ -9,6 +9,7 @@ from typing import Dict, Any
 from common.utils import get_monotonic_ms, get_wall_ms
 from node.config import NodeConfig
 from node.ring_buffer import RingBuffer
+from node.wal import WAL
 
 PERIOD_10hz_s = 0.1
 
@@ -21,6 +22,7 @@ class Node:
         self.seq = 0
         self.config = config
         self.buf = RingBuffer(config.buffer_max)
+        self.wal = WAL(workdir / f"{node_id}.wal")
 
     async def make_sample(self) -> Dict[str, Any]:
         # Simple random walk signals
