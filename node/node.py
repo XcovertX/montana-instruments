@@ -17,6 +17,12 @@ class Node:
     def sample_loop(self):
         pass
 
+    def tx_loop(self):
+        pass
+
+    def rx_loop(self):
+        pass
+
 async def main():
     parser = argparse.ArgumentParser(description="MI Diagnostics Node")
     parser.add_argument("--id", required=True)
