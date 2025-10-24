@@ -7,6 +7,8 @@ import random
 from pathlib import Path
 from typing import Dict, Any
 
+PERIOD_10hz_s = 0.1
+
 class Node:
     def __init__(self, node_id: str, host: str, port: int, workdir: Path):
         self.node_id = node_id
@@ -14,8 +16,11 @@ class Node:
         self.port = port
         self.workdir = workdir
 
-    def sample_loop(self):
-        pass
+    async def sample_loop(self):
+        while True:
+            start = time.perf_counter()
+            elapsed = time.perf_counter() - start
+            await asyncio.sleep(max(0.0, PERIOD_10hz_s - elapsed))
 
     def tx_loop(self):
         pass
