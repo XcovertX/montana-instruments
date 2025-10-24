@@ -7,16 +7,20 @@ import random
 from pathlib import Path
 from typing import Dict, Any
 from common.utils import get_monotonic_ms, get_wall_ms
+from node.config import NodeConfig
+from node.ring_buffer import RingBuffer
 
 PERIOD_10hz_s = 0.1
 
 class Node:
-    def __init__(self, node_id: str, host: str, port: int, workdir: Path):
+    def __init__(self, node_id: str, host: str, port: int, workdir: Path, config: NodeConfig):
         self.node_id = node_id
         self.host = host
         self.port = port
         self.workdir = workdir
         self.seq = 0
+        self.config = config
+        self.buf = RingBuffer(config.buffer_max)
 
     async def make_sample(self) -> Dict[str, Any]:
         # Simple random walk signals
@@ -57,7 +61,7 @@ async def main():
     workdir = Path(args.workdir)
     workdir.mkdir(parents=True, exist_ok=True)
 
-    node = Node(args.id, args.host, args.port, workdir)
+    node = Node(args.id, args.host, args.port, workdir, NodeConfig())
 
 if __name__ == "__main__":
     asyncio.run(main())
