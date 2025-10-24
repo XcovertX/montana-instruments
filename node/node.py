@@ -7,6 +7,7 @@ import random
 from pathlib import Path
 from typing import Dict, Any
 from common.utils import get_monotonic_ms, get_wall_ms
+from node.anomaly import ZScore
 from node.config import NodeConfig
 from node.ring_buffer import RingBuffer
 from node.wal import WAL
@@ -15,14 +16,18 @@ PERIOD_10hz_s = 0.1
 
 class Node:
     def __init__(self, node_id: str, host: str, port: int, workdir: Path, config: NodeConfig):
-        self.node_id = node_id
-        self.host = host
-        self.port = port
-        self.workdir = workdir
-        self.seq = 0
-        self.config = config
-        self.buf = RingBuffer(config.buffer_max)
-        self.wal = WAL(workdir / f"{node_id}.wal")
+        self.node_id  = node_id
+        self.host     = host
+        self.port     = port
+        self.workdir  = workdir
+        self.seq      = 0
+        self.config   = config
+        self.buf      = RingBuffer(config.buffer_max)
+        self.wal      = WAL(workdir / f"{node_id}.wal")
+        self.z_temp   = ZScore()
+        self.z_hum    = ZScore()
+        self.z_vib    = ZScore()
+        self.degraded = False
 
     async def make_sample(self) -> Dict[str, Any]:
         # Simple random walk signals
