@@ -1,0 +1,1 @@
+{"type":"telemetry","node_id":"N1","ts_mono_ms":196490781,"ts_wall_ms":1761332595083,"seq":0,"metrics":{"temp_c":24.889,"hum_pct":39.995,"vib_g":0.1096},"anomaly":false,"diagnostics":{"diag_ok":true,"diag_reason":""},"degraded":false}

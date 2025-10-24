@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 async def send_json(writer: asyncio.StreamWriter, obj: Dict[str, Any]) -> None:
     data = (json.dumps(obj, separators=(",", ":")) + "\n").encode("utf-8")
     writer.write(data)
+    print("Sent JSON:", obj)
     await writer.drain()
 
 async def read_json(reader: asyncio.StreamReader, *, limit: int = 1_000_000) -> Optional[Dict[str, Any]]:

@@ -161,6 +161,13 @@ async def main():
     workdir.mkdir(parents=True, exist_ok=True)
 
     node = Node(args.id, args.host, args.port, workdir, NodeConfig())
-
+    tasks = [
+        asyncio.create_task(node.sample_loop()),  # Sample loop task
+        asyncio.create_task(node.tx_loop()),  # Transmit loop task
+    ]  
+    try:  # Run tasks
+        await asyncio.gather(*tasks) 
+    except asyncio.CancelledError:
+        pass  # No-op
 if __name__ == "__main__":
     asyncio.run(main())

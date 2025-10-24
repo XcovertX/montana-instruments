@@ -5,6 +5,7 @@ import json
 import time
 from pathlib import Path
 from common.protocol import send_json, read_json
+from .config_schema import DEFAULT_CONFIG
 
 LOG_DIR = Path(__file__).resolve().parent / "logs"
 LOG_DIR.mkdir(exist_ok=True, parents=True)
@@ -56,6 +57,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
             # Occasionally push a config update
             now = time.time()
             if args.push_config_every_s > 0 and now - last_cfg_push > args.push_config_every_s:
+                print(f"[HOST] Pushing config update to {state.node_id} at {peer}")
                 last_cfg_push = now
                 # tighten anomaly threshold randomly to demo runtime change
                 new_z = random.choice([2.5, 3.0, 3.5])
@@ -84,7 +86,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 async def main():
     parser = argparse.ArgumentParser(description="MI Diagnostics Host")
     parser.add_argument("--port", type=int, default=9000)
-    parser.add_argument("--bind", default="0.0.0.0")
+    parser.add_argument("--bind", default="127.0.0.1")
     parser.add_argument("--ack-delay-ms", dest="ack_delay_ms", type=int, default=0)
     parser.add_argument("--faults", action="store_true", help="Enable random connection drops")
     parser.add_argument("--drop-prob", type=float, default=0.0, help="Prob. per message to drop connection")
