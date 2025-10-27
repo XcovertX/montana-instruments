@@ -5,6 +5,9 @@ Provide a small, reliable system for distributed telemetry with anomaly detectio
 
 Keep mechanisms simple, testable and observable.
 
+## System Architecture
+![System Diagram](system-architecture.png)
+
 ## Subsystems
 ### Host
 - TCP server
