@@ -41,12 +41,10 @@ Sensors -> Node Sampler -> Anomaly/Diag -> Ring+WAL -> TCP -> Host -> Log, ACK -
 - **Backpressure:** When the ring buffer fills beyond 80%, the node marks itself as `degraded` and prioritizes transmissions over new samples.  
 - **Runtime Config:** Configuration updates include a version number and are applied atomically to maintain deterministic behavior.
 
-
 ## Timing & Data Integrity
 - **Sequential Ordering:** Sequence numbers strictly increase per node.  
 - **Monotonic Time:** Used for ordering even when system clocks shift.  
 - **Integrity Checks:** Each message is validated on host receipt; corrupted frames are ignored gracefully.
-
 
 ## Outage Tolerance / Replay
 - **Offline Sampling:** When disconnected, the node continues collecting samples.  
@@ -69,7 +67,6 @@ These are **design-level enhancements** for real embedded deployment:
 - **Anti-Rollback Protection:** Firmware versions are monotonic; older versions are rejected to prevent downgrades.  
 - **Watchdog Health Check & Rollback:** Post-boot watchdog verifies successful startup; failures trigger automatic rollback to the previous version.  
 - **Transport Security:** All host–node traffic can be protected using TLS or mTLS with certificate pinning for mutual authentication.
-
 
 ## Potential Future Extensions
 - **Binary Framing + TLS/mTLS:** Migrate from text to length-prefixed binary frames over encrypted channels for efficiency and security.  
