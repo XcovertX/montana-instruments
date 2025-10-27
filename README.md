@@ -34,6 +34,12 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 - **Safe startup/shutdown**: WAL ensures crash persistence; on reconnect, replay from `ack` and compact WAL.
 - **Robust, secure firmware updates (design)**: See `DESIGN.md` for A/B partitions, signed images, secure boot, and rollback strategy.
 
+## Testing
+The system includes fault injection parameters to simulate realistic network conditions:
+	```sh
+	--faults --drop-prob 0.01 --ack-delay-ms 100
+	```
+
 ## Notes
 - **Subsystems:** See `DESIGN.md` for architecture details.
 - **Extensibility:** The system is modular; add new metrics, diagnostics, or host features as needed.
