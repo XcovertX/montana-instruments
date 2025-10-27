@@ -1,6 +1,5 @@
 
 # MI Diagnostics Challenge
-
 A distributed telemetry and diagnostics system with anomaly detection, replay/outage tolerance, and runtime configuration.
 
 ## Quick Start Instructions
@@ -18,7 +17,6 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 4. **Observe output:** Nodes will connect, send telemetry, and handle diagnostics and anomaly detection.
 
 ## What to Observe
-
 - **Seq/ACK**: The host logs JSON Lines per node in `host/logs/N1.jsonl`. Sequence numbers increase monotonically.
 - **Outage replay**: Stop the host; nodes buffer to a ring + WAL. Restart the host; nodes replay from last **ack** with no gaps.
 - **Telemetry streaming:** Each node samples data at 10Hz, detects anomalies, and sends JSON telemetry to the host.
@@ -27,7 +25,6 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 - **Diagnostics**: Node includes a simple `diagnostics` block and toggles `degraded=true` when buffer nears capacity.
 
 ## Mapping to Requirements
-
 - **Reliable timing & data integrity**: `seq`, `ts_mono_ms`, `ts_wall_ms` in `node/node.py`; host verifies monotonic `seq` by ACKing high-watermark.
 - **Detect and log anomalies & diagnostics**: `node/anomaly.py`, `node/diagnostics.py`; host logs per-node JSONL.
 - **Handle outages & replay**: `node/ring_buffer.py`, `node/wal.py`, reconnect logic in `node/node.py`.
@@ -38,7 +35,6 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 - **Robust, secure firmware updates (design)**: See `DESIGN.md` for A/B partitions, signed images, secure boot, and rollback strategy.
 
 ## Notes
-
 - **Subsystems:** See `DESIGN.md` for architecture details.
 - **Extensibility:** The system is modular; add new metrics, diagnostics, or host features as needed.
 - **Testing:** Fault injection and replay can be demonstrated by disconnecting nodes or using host options.
