@@ -105,7 +105,6 @@ class Node:
         # Drain messages from host until an ACK (also process config updates)
         deadline = time.monotonic() + 0.5
         while time.monotonic() < deadline:
-            reader._transport.set_read_buffer_limits(1<<20)
             try:
                 reader._transport   # touch to ensure exists
             except Exception:
@@ -162,12 +161,12 @@ async def main():
 
     node = Node(args.id, args.host, args.port, workdir, NodeConfig())
     tasks = [
-        asyncio.create_task(node.sample_loop()),  # Sample loop task
-        asyncio.create_task(node.tx_loop()),  # Transmit loop task
-    ]  
-    try:  # Run tasks
-        await asyncio.gather(*tasks) 
+        asyncio.create_task(node.sample_loop()),
+        asyncio.create_task(node.tx_loop()),
+    ]
+    try:
+        await asyncio.gather(*tasks)
     except asyncio.CancelledError:
-        pass  # No-op
+        pass
 if __name__ == "__main__":
     asyncio.run(main())
