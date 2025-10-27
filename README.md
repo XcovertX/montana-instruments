@@ -5,7 +5,7 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 
 ## Quick Start Instructions
 
-1. **Install Python 3.10+** and required packages (see `requirements.txt` if present).
+1. **Install Python 3.10+** 
 2. **Start the host server:**
 	```sh
 	python -m host.host --port 9000 --push-config-every-s 15 --ack-delay-ms 50 --faults --drop-prob 0.01
@@ -42,5 +42,3 @@ A distributed telemetry and diagnostics system with anomaly detection, replay/ou
 - **Subsystems:** See `DESIGN.md` for architecture details.
 - **Extensibility:** The system is modular; add new metrics, diagnostics, or host features as needed.
 - **Testing:** Fault injection and replay can be demonstrated by disconnecting nodes or using host options.
-- **Security:** Not implemented; for demo purposes only.
-- **Future:** Add more sensors, richer diagnostics, or secure communication as needed.
