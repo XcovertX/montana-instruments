@@ -29,13 +29,32 @@ Sensors -> Node Sampler -> Anomaly/Diag -> Ring+WAL -> TCP -> Host -> Log, ACK -
 - **Runtime Config:** `config_update` carries version; node applies atomically and replies `config_applied` with `cfg_version_applied`.
 
 ## Timing & Data Integrity
+- Uniqueness & order via `seq`.
+- `ts_mono_ms` for ordering within a node even if wall clock jumps.
+- Optional CRC/hash can be added per record; omitted for brevity in prototype.
 
 ## Outage Tolerance / Replay
+- On disconnect, node continues sampling to ring + WAL.
+- On reconnect, node replays any WAL records with `seq > high_acked`.
+- After ACK, WAL compacts to bound disk usage.
 
 ## Diagnostics
+- Simple placeholder checks (`rail_low` simulation). Structured `diagnostics` block included per record to make logs actionable.
 
 ## Safe Startup & Shutdown
+- At startup, node replays any WAL content to restore state.
+- Sampling and transmission loops are independent; reconnection uses exponential backoff.
+- Final heartbeat could be emitted on SIGTERM (future enhancement).
 
-## Security & Firmware Updates
+## Potential Security & Firmware Updates
+- **A/B Partitions + Atomic Switch:** New firmware staged to inactive slot; bootloader flips only after signature + version check.
+- **Signed Images & Secure Boot:** ECC/Ed25519 signatures; boot ROM/secure boot verifies before execute.
+- **Anti-rollback:** Monotonic version counter in secure storage. Reject images with lower version.
+- **Health Checks & Rollback:** Post-boot watchdog; on failure, revert to previous slot.
+- **Transport Security:** mTLS for node↔host; image fetched over TLS with pinning. (Not implemented in prototype for time.)
 
-## Future Extensions
+## Potential Future Extensions
+- Switch to length-prefixed binary frames and **TLS/mTLS**.
+- Prometheus exporter on host; Grafana dashboards.
+- On-node health LED & local metrics page.
+- Unit/integration tests (pytest) and CI.
