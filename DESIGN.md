@@ -21,6 +21,12 @@ Keep mechanisms simple, testable and observable.
 Sensors -> Node Sampler -> Anomaly/Diag -> Ring+WAL -> TCP -> Host -> Log, ACK -> Node compact WAL
 
 ## Key Decisions & Trade-offs
+- **Protocol:** newline-delimited JSON for readability/time-boxed challenge. Trade-off: verbosity; mitigated by line-by-line streaming.
+- **Durability:** RAM ring buffer for speed; tiny WAL for crash/outage persistence. WAL compaction after ACK to bound disk.
+- **Ordering & Integrity:** `seq` per node; host ACKs the highest contiguous `seq`. Records include both **monotonic** and **wall** timestamps.
+- **Anomaly Detection:** Rolling z-score (Welford) per metric (O(1) update). Threshold `|z|>z_thresh` (default 3.0). Easy to tune via config.
+- **Backpressure:** When ring approaches capacity, mark `degraded=true` and prioritize transmission. Future: dynamic downsampling.
+- **Runtime Config:** `config_update` carries version; node applies atomically and replies `config_applied` with `cfg_version_applied`.
 
 ## Timing & Data Integrity
 
