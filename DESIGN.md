@@ -8,56 +8,71 @@ Keep mechanisms simple, testable and observable.
 ## System Architecture
 ![System Diagram](system-architecture.png)
 
-## Subsystems
-### Host
-- TCP server
-- Periodic broadcast
-- Fault injection for demonstrating replay
+The system follows a two-tier model:
+1. **Edge Nodes** that collect sensor data and run diagnostics.
+2. **A Host Controller** that aggregates, logs, and commands those nodes.
 
-### Node
-- Sample @10Hz -> Rolling z-score anomaly -> Diagnostics
-- Serialize to JSON -> Ring buffer (RAM) + Write-Ahead Log (WAL, file)
-- TX queue over TCP -> Host
-- Config listener 
+Communication is event-driven over TCP, with acknowledgments (`ACK`) ensuring delivery reliability and configuration updates (`config_update`) allowing runtime reconfiguration without restarting the system.
 
 ## Dataflow
 Sensors -> Node Sampler -> Anomaly/Diag -> Ring+WAL -> TCP -> Host -> Log, ACK -> Node compact WAL
 
+## Subsystems
+### Host
+- **TCP Server:** Manages simultaneous node connections, receives telemetry JSON messages, and sends acknowledgments.
+- **Configuration Broadcast:** Periodically issues configuration updates (e.g., anomaly thresholds) to demonstrate dynamic control.
+- **Fault Injection:** Randomly drops or delays messages to simulate network outages and validate replay behavior.
+- **Persistent Logging:** Writes per-node JSONL log files for analysis and debugging.
+
+
+### Node
+- **Sampler (10 Hz):** Generates or reads environmental data (temperature, humidity, vibration).  
+- **Anomaly Detection:** Computes rolling z-scores (Welford’s algorithm) to detect deviations beyond configurable thresholds.  
+- **Diagnostics:** Performs simulated health checks (e.g., power rail validation) to flag degraded conditions.  
+- **Ring Buffer + WAL:** Maintains a bounded in-memory buffer for quick access and an on-disk WAL for persistence during outages.  
+- **TX/RX Manager:** Sends telemetry, awaits host acknowledgments, replays unacknowledged data after reconnects, and applies configuration updates atomically.
+
+
 ## Key Decisions & Trade-offs
-- **Protocol:** newline-delimited JSON for readability/time-boxed challenge. Trade-off: verbosity; mitigated by line-by-line streaming.
-- **Durability:** RAM ring buffer for speed; tiny WAL for crash/outage persistence. WAL compaction after ACK to bound disk.
-- **Ordering & Integrity:** `seq` per node; host ACKs the highest contiguous `seq`. Records include both **monotonic** and **wall** timestamps.
-- **Anomaly Detection:** Rolling z-score (Welford) per metric (O(1) update). Threshold `|z|>z_thresh` (default 3.0). Easy to tune via config.
-- **Backpressure:** When ring approaches capacity, mark `degraded=true` and prioritize transmission. Future: dynamic downsampling.
-- **Runtime Config:** `config_update` carries version; node applies atomically and replies `config_applied` with `cfg_version_applied`.
+- **Protocol:** Chose newline-delimited JSON for human readability and fast prototyping. Although verbose, it allows simple incremental streaming and debugging via command-line tools.  
+- **Durability:** WAL ensures no data loss even if power is interrupted mid-transfer. WAL compaction after ACK bounds disk usage.  
+- **Ordering & Integrity:** Every message has a unique sequence number and both monotonic and wall-clock timestamps.  
+- **Anomaly Detection:** Lightweight and O(1) per update. Rolling mean/stddev lets the node adapt to changing baselines.  
+- **Backpressure:** When the ring buffer fills beyond 80%, the node marks itself as `degraded` and prioritizes transmissions over new samples.  
+- **Runtime Config:** Configuration updates include a version number and are applied atomically to maintain deterministic behavior.
+
 
 ## Timing & Data Integrity
-- Uniqueness & order via `seq`.
-- `ts_mono_ms` for ordering within a node even if wall clock jumps.
-- Optional CRC/hash can be added per record; omitted for brevity in prototype.
+- **Sequential Ordering:** Sequence numbers strictly increase per node.  
+- **Monotonic Time:** Used for ordering even when system clocks shift.  
+- **Integrity Checks:** Each message is validated on host receipt; corrupted frames are ignored gracefully.
+
 
 ## Outage Tolerance / Replay
-- On disconnect, node continues sampling to ring + WAL.
-- On reconnect, node replays any WAL records with `seq > high_acked`.
-- After ACK, WAL compacts to bound disk usage.
+- **Offline Sampling:** When disconnected, the node continues collecting samples.  
+- **Reconnection Replay:** Upon reconnect, the node retransmits all records beyond the last acknowledged sequence number.  
+- **WAL Compaction:** Keeps storage bounded by trimming confirmed entries.
 
 ## Diagnostics
-- Simple placeholder checks (`rail_low` simulation). Structured `diagnostics` block included per record to make logs actionable.
+Diagnostics are reported per sample and include simple but structured results (e.g., `rail_low`, `sensor_unresponsive`).  
+This makes logs actionable for both automated monitoring and operator review.
 
 ## Safe Startup & Shutdown
-- At startup, node replays any WAL content to restore state.
-- Sampling and transmission loops are independent; reconnection uses exponential backoff.
-- Final heartbeat could be emitted on SIGTERM (future enhancement).
+At startup, the node replays any existing WAL records before resuming normal sampling.  
+Sampling and transmission run as independent asynchronous tasks, ensuring that restarts and reconnects do not block each other.  
+A graceful shutdown ensures that pending WAL writes are flushed and acknowledged messages are retained for the next session.
 
 ## Potential Security & Firmware Updates
-- **A/B Partitions + Atomic Switch:** New firmware staged to inactive slot; bootloader flips only after signature + version check.
-- **Signed Images & Secure Boot:** ECC/Ed25519 signatures; boot ROM/secure boot verifies before execute.
-- **Anti-rollback:** Monotonic version counter in secure storage. Reject images with lower version.
-- **Health Checks & Rollback:** Post-boot watchdog; on failure, revert to previous slot.
-- **Transport Security:** mTLS for node↔host; image fetched over TLS with pinning. (Not implemented in prototype for time.)
+These are **design-level enhancements** for real embedded deployment:
+- **A/B Partitions + Atomic Switch:** Firmware is downloaded to an inactive partition. After signature verification and health checks, the bootloader switches partitions atomically.  
+- **Signed Images & Secure Boot:** Only signed, verified firmware is executed.  
+- **Anti-Rollback Protection:** Firmware versions are monotonic; older versions are rejected to prevent downgrades.  
+- **Watchdog Health Check & Rollback:** Post-boot watchdog verifies successful startup; failures trigger automatic rollback to the previous version.  
+- **Transport Security:** All host–node traffic can be protected using TLS or mTLS with certificate pinning for mutual authentication.
+
 
 ## Potential Future Extensions
-- Switch to length-prefixed binary frames and **TLS/mTLS**.
-- Prometheus exporter on host; Grafana dashboards.
-- On-node health LED & local metrics page.
-- Unit/integration tests (pytest) and CI.
+- **Binary Framing + TLS/mTLS:** Migrate from text to length-prefixed binary frames over encrypted channels for efficiency and security.  
+- **Prometheus Exporter / Grafana Dashboard:** Add runtime metrics on the host to visualize node status, replay backlog, and anomaly counts.  
+- **On-node Health Indicators:** Implement LED or web dashboard for local status visualization.  
+- **Automated Testing & CI/CD:** Add unit tests (pytest) for ring buffer and WAL logic, plus GitHub Actions integration for continuous verification.
